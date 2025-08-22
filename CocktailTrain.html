@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nightreign — Combo Trainer (Magic Cocktail)</title>
+  <style>
+    :root{--bg:#0b0e13;--panel:#0d131c;--panel2:#0a1018;--panel3:#0f1622;--text:#e7f0ff;--muted:#9bb0d1;--gold:#c9b579;--ok:#63d18f;--bad:#ff6b6b;--rune-size:clamp(56px,10vw,92px)}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:ui-serif,Georgia,"Times New Roman",serif;background:radial-gradient(60vw 60vh at 70% -10%,rgba(118,246,193,.06),transparent 60%),radial-gradient(70vw 70vh at -10% 100%,rgba(201,181,121,.07),transparent 60%),linear-gradient(180deg,rgba(255,255,255,.02),transparent 40%),var(--bg)}
+    .wrap{max-width:1200px;margin:0 auto;padding:clamp(16px,3vw,32px)}
+    h1{font-size:28px;margin:0 0 6px;letter-spacing:.02em;text-transform:uppercase}
+    .sub{color:var(--muted);font-size:13px}
+    .sub a{color:#ff0000;text-decoration:none;font-weight:600;transition:color .2s ease}
+    .sub a:hover{color:#ff4d4d;text-decoration:underline}
+    .tabs{display:flex;gap:10px;margin:16px 0}
+    .tab{padding:10px 16px;border-radius:999px;border:1px solid rgba(201,181,121,.35);background:linear-gradient(180deg,rgba(201,181,121,.08),rgba(255,255,255,0) 60%);color:var(--gold);cursor:pointer}
+    .tab.active{box-shadow:0 0 0 1px rgba(118,246,193,.35) inset,0 0 0 2px rgba(118,246,193,.12);color:var(--text)}
+    .panel{display:none}
+    .panel.active{display:block}
+    .card{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;margin-bottom:16px}
+    .grid{display:grid;gap:12px}
+    .grid.el{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+    .grid.sp{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .imgbox{background:var(--panel3);border:1px solid rgba(255,255,255,.18);border-radius:12px;display:grid;place-items:center;overflow:hidden;position:relative;aspect-ratio:1/1;padding:clamp(6px,1.2vw,12px)}
+    .imgbox img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(0,0,0,.35))}
+    .title{font-weight:800;margin-top:8px;letter-spacing:.02em}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .badge{position:absolute;top:6px;left:6px;min-width:18px;height:18px;border-radius:999px;padding:0 5px;display:grid;place-items:center;font-size:11px;line-height:1;background:rgba(201,181,121,.2);border:1px solid rgba(201,181,121,.45);color:var(--gold)}
+    .answers{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .ans{cursor:pointer;transition:filter .2s;position:relative}
+    .ans:hover{filter:brightness(1.05)}
+    .ans.correct{box-shadow:0 0 0 2px rgba(99,209,143,.6) inset}
+    .ans.wrong{box-shadow:0 0 0 2px rgba(255,107,107,.6) inset}
+    .btn{position:relative;appearance:none;border:1px solid rgba(201,181,121,.45);background:linear-gradient(180deg,rgba(201,181,121,.15),rgba(255,255,255,0));color:var(--gold);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;letter-spacing:.02em}
+    .btn .badge{top:-8px;left:-8px}
+    #qbox.qarea{min-height:360px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    #qbox .qcenter{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .combo-bar{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border:1px solid rgba(255,255,255,.18);background:var(--panel3);border-radius:18px;box-shadow:0 0 0 2px rgba(0,0,0,.25) inset}
+    .combo-bar img{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:var(--panel2);padding:1px}
+    #picker{gap:10px;align-items:center;flex-wrap:wrap}
+    #chosen{display:flex;gap:10px}
+    .slot{width:42px;height:42px;border-radius:10px;border:1px dashed rgba(255,255,255,.2);position:relative;flex:0 0 auto}
+    .slot img{position:absolute;inset:0;margin:auto;width:42px;height:42px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:var(--panel3);padding:1px}
+    .slot[data-el="fire"]{box-shadow:0 0 0 2px rgba(255,120,70,.35) inset}
+    .slot[data-el="magic"]{box-shadow:0 0 0 2px rgba(130,180,255,.35) inset}
+    .slot[data-el="lightning"]{box-shadow:0 0 0 2px rgba(255,230,110,.35) inset}
+    .slot[data-el="holy"]{box-shadow:0 0 0 2px rgba(210,240,210,.35) inset}
+    .ring{position:relative;width:clamp(180px,40vw,340px);aspect-ratio:1;border-radius:50%;border:3px solid rgba(201,181,121,.55);margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.02) 65%, transparent 66%)}
+    .ring img{width:70%;height:70%;border-radius:50%;object-fit:cover;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))}
+    .ring .fill{position:absolute;inset:0;border-radius:50%;background:transparent;transform:scale(0);opacity:0}
+    .ring.ok .fill{background:rgba(99,209,143,.2)}
+    .ring.bad .fill{background:rgba(255,107,107,.2)}
+    .ring.ok{color:rgba(99,209,143,.85)}
+    .ring.bad{color:rgba(255,107,107,.85)}
+    .ring.ok.animate::after,.ring.bad.animate::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,currentColor 0%,transparent 60%);transform:scale(0);opacity:0;animation:ripple 700ms ease-out forwards}
+    .ring.ok.animate .fill,.ring.bad.animate .fill{animation:fillgrow 900ms ease forwards}
+    #qbox .qripple,#qbox .qfill{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);border-radius:50%;pointer-events:none}
+    #qbox .qripple{width:24px;height:24px;background:radial-gradient(circle,currentColor 0%,transparent 60%);opacity:0}
+    #qbox .qfill{width:24px;height:24px;opacity:0}
+    #qbox.ok{color:var(--ok)}#qbox.ok .qfill{background:rgba(99,209,143,.18)}
+    #qbox.bad{color:var(--bad)}#qbox.bad .qfill{background:rgba(255,107,107,.18)}
+    .qripple.animate{animation:ripple 700ms ease-out forwards}
+    .qfill.animate{animation:qfillGrow 900ms ease forwards}
+    .rank{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font-size:28px;letter-spacing:.14em;text-transform:uppercase;padding:12px 18px;border:1px solid rgba(201,181,121,.5);background:linear-gradient(180deg,rgba(201,181,121,.08),transparent);color:var(--gold);border-radius:12px;opacity:0;pointer-events:none;transition:opacity .6s ease, transform .6s ease;z-index:3000}
+    .rank.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .gear{position:fixed;top:12px;right:12px;z-index:2500;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;cursor:pointer;border:1px solid rgba(201,181,121,.45);color:var(--gold);background:linear-gradient(180deg,rgba(201,181,121,.12),rgba(255,255,255,0))}
+    .settings{position:fixed;top:58px;right:12px;z-index:2400;width:min(92vw,320px);padding:12px;border-radius:14px;background:var(--panel3);border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.35);display:none;overflow:hidden}
+    .settings.open{display:block}
+    .settings .row{display:flex;align-items:center;gap:8px}
+    .settings input[type="range"]{flex:1}
+    .rune{position:relative;width:var(--rune-size);height:var(--rune-size);border-radius:50%;border:2px solid rgba(201,181,121,.45);background:radial-gradient(circle, rgba(201,181,121,.08), transparent 60%);margin-top:8px}
+    .rune .seg{position:absolute;left:50%;top:50%;width:clamp(6px,1.1vw,9px);height:clamp(14px,2.2vw,18px);margin:calc(-1 * clamp(7px,1.1vw,9px)) 0 0 calc(-.5 * clamp(6px,1.1vw,9px));border-radius:3px;background:rgba(201,181,121,.15);box-shadow:0 0 0 rgba(201,181,121,0);transform-origin:center}
+    .rune .seg.on{background:rgba(201,181,121,.85);box-shadow:0 0 10px rgba(201,181,121,.7)}
+    @media (prefers-reduced-motion:reduce){.qripple,.qfill,.ring::after{animation:none!important}.ring .fill{opacity:.25;transform:none}.rank{transition:none}}
+    @keyframes ripple{0%{transform:translate(-50%,-50%) scale(0);opacity:.8}80%{transform:translate(-50%,-50%) scale(18);opacity:.3}100%{transform:translate(-50%,-50%) scale(22);opacity:0}}
+    @keyframes fillgrow{0%{transform:scale(0);opacity:0}60%{transform:scale(.96);opacity:.6}100%{transform:scale(1);opacity:1}}
+    @keyframes qfillGrow{0%{transform:translate(-50%,-50%) scale(0);opacity:0}60%{transform:translate(-50%,-50%) scale(18);opacity:.6}100%{transform:translate(-50%,-50%) scale(22);opacity:1}}
+    @media (max-width:640px){.grid.sp{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.combo img{width:26px;height:26px}#qbox.qarea{min-height:300px}.btn{padding:12px 16px}.combo-bar img{width:28px;height:28px}}
+  </style>
+</head>
+<body>
+  <button id="btnGear" class="gear" aria-expanded="false" title="Settings">⚙</button>
+  <div id="settings" class="settings" aria-label="Settings">
+    <div class="title" style="color:var(--gold);margin-bottom:6px">Settings</div>
+    <div class="row small"><span style="opacity:.8">Volume:</span><input id="vol" type="range" min="0" max="100" step="1"><b id="volPct" class="small" style="min-width:36px;text-align:right"></b></div>
+    <div id="volRune" class="rune" aria-hidden="true"></div>
+  </div>
+
+  <div class="wrap">
+    <h1>Nightreign — Combo Trainer</h1>
+    <div class="sub">Memory game for the “Magic Cocktail” by  — <a href="https://www.youtube.com/@Iron_Husbando" target="_blank" rel="noopener">@Iron_Husbando</a></div>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="learn">Reference</button>
+      <button class="tab" data-tab="quiz">Quiz / Mini-Game</button>
+    </nav>
+
+    <section class="panel active" id="panel-learn">
+      <div class="card">
+        <div class="title" style="color:var(--gold)">Elements</div>
+        <div id="elGrid" class="grid el"></div>
+      </div>
+      <div class="card">
+        <div class="row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="title">Spells (14)</div>
+          <div class="right small muted" style="margin-left:auto">Click a card to reveal the combination</div>
+        </div>
+        <div id="spellGrid" class="grid sp"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-quiz">
+      <div class="card">
+        <div class="row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label class="row small"><input type="radio" name="mode" value="c2s" checked> &nbsp;Combo → Spell</label>
+          <label class="row small"><input type="radio" name="mode" value="s2c"> &nbsp;Spell → Combo</label>
+          <label class="row small" title="Set per-question timer in seconds"><span style="opacity:.8">Timer:</span> <input id="timer" type="number" min="0" max="120" step="1" value="" placeholder="—" style="width:64px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);padding:4px 6px"></label>
+          <div class="right small" style="margin-left:auto">Score: <b id="score">0</b> • Streak: <b id="streak">0</b> • Rank: <b id="rank">—</b></div>
+        </div>
+        <div class="row" style="display:flex;gap:8px;margin:8px 0 6px;align-items:center">
+          <button class="btn" id="btnNext" aria-label="Start or next question">Start</button>
+          <button class="btn" id="btnReset">Reset</button>
+          <span class="small muted" style="margin-left:10px">Enter — confirm / submit</span>
+          <span class="small muted" id="msg" style="margin-left:auto"></span>
+        </div>
+        <div class="row small muted" id="stats" style="text-align:right">Accuracy: — • Avg time: —</div>
+        <div id="qbox" class="card qarea" style="background:var(--panel2);text-align:center">Ready. Press “Start”.</div>
+        <div id="answers" class="answers"></div>
+
+        <div id="picker" class="row" style="display:none;margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div id="chosen"></div>
+          <div class="row" id="palette" style="display:flex;gap:6px"></div>
+          <div id="resultPreview" class="small muted" style="margin-left:auto">Result: ?</div>
+          <button class="btn right" id="check" disabled>Check</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- SFX -->
+  <audio id="sfxOk" preload="auto" src="https://ironhusbando.github.io/Magic-Cocktail-Trainer/assets/sounds/ok.ogg"></audio>
+  <audio id="sfxBad" preload="auto" src="https://ironhusbando.github.io/Magic-Cocktail-Trainer/assets/sounds/bad.ogg"></audio>
+  <audio id="sfxRank" preload="auto" src="https://ironhusbando.github.io/Magic-Cocktail-Trainer/assets/sounds/newrank.ogg"></audio>
+
+  <div id="rankBanner" class="rank" aria-live="polite"></div>
+
+  <script>
+  const $=(s,r=document)=>r.querySelector(s);
+  const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  function shuffle(a){return a.sort(()=>Math.random()-.5)}
+  function sameCombo(a,b){const A=[...a].sort(); const B=[...b].sort(); if(A.length!==B.length) return false; for(let i=0;i<A.length;i++) if(A[i]!==B[i]) return false; return true}
+
+  const ICON={magic:'https://eldenringnightreign.wiki.fextralife.com/file/Elden-Ring-Nightreign/magic-icon-magic-cocktail-recluse-elden-ring-nightreign-wiki-guide.png',fire:'https://eldenringnightreign.wiki.fextralife.com/file/Elden-Ring-Nightreign/fire-icon-magic-cocktail-recluse-elden-ring-nightreign-wiki-guide.png',lightning:'https://eldenringnightreign.wiki.fextralife.com/file/Elden-Ring-Nightreign/lightning-icon-magic-cocktail-recluse-elden-ring-nightreign-wiki-guide.png',holy:'https://eldenringnightreign.wiki.fextralife.com/file/Elden-Ring-Nightreign/holy-icon-magic-cocktail-recluse-elden-ring-nightreign-wiki-guide.png'};
+  const ELEMENTS=[{id:'fire',name:'Fire',img:ICON.fire},{id:'holy',name:'Holy',img:ICON.holy},{id:'lightning',name:'Lightning',img:ICON.lightning},{id:'magic',name:'Magic',img:ICON.magic}];
+
+  function makeIcon(id){const e=ELEMENTS.find(x=>x.id===id); const img=document.createElement('img'); img.src=e?e.img:''; img.alt=e?e.name:id; return img;}
+
+  const SPELLS=[
+    {id:'aoe_fire',name:'AoE Fire Damage',combo:['fire','fire','fire'],img:'https://i.postimg.cc/L56H56DP/Ao-E-Fire-Damage.png',desc:'Throw a whirlwind of flame. Flame spreads across a small area upon contact and burns for some time.'},
+    {id:'aoe_ice',name:'AoE Freeze & Ice block',combo:['magic','lightning','holy'],img:'https://i.postimg.cc/XqHnCS1z/Ao-E-Freeze-Ice-Armor.png',desc:'Create cold storm with area effect and retreat inside ice block, gaining invulnerability.'},
+    {id:'aoe_gravity',name:'AoE Gravity Explosion',combo:['magic','fire','lightning'],img:'https://i.postimg.cc/pVqW7zVJ/Ao-E-Gravity-Explosion.png',desc:'Conjure frontwards exploding gravity orb. Gravity orb pulls enemies inward, expands, and explodes, inflicting heavy damage.'},
+    {id:'aoe_lightning',name:'AoE Lightning',combo:['fire','lightning','holy'],img:'https://i.postimg.cc/Yq0rw0hK/Ao-E-Lightning.png',desc:'Create lightning rod and thrust forward into terrain. White lightning strikes rod after a short delay.'},
+    {id:'parry',name:'Automatic Parry',combo:['lightning','lightning','holy'],altCombos:[['holy','holy','lightning']],img:'https://i.postimg.cc/fTPwWs93/Automatic-Parry.png',desc:'Weave a layer of lightning that parries enemy attacks for a short time'},
+    {id:'step',name:"Bloodhound's Step",combo:['lightning','lightning','lightning'],img:'https://i.postimg.cc/L8ZmnWtx/Bloodhounds-Step.png',desc:'Enwreathe oneself in lightning, bolstering dodging actions.'},
+    {id:'sword',name:'Conjured Sword',combo:['magic','magic','lightning'],altCombos:[['lightning','lightning','magic']],img:'https://i.postimg.cc/PqsTZMKT/Conjured-Sword.png',desc:'Execute broad forward slash with magical blade. Hold to move with sword drawn.'},
+    {id:'shield',name:'Divine Shield',combo:['holy','holy','holy'],img:'https://i.postimg.cc/MG7xYjrR/Divine-Shield.png',desc:'Enwreathe oneself in holy light, bolstering poise and increasing damage negation.'},
+    {id:'blinkbolt',name:'Fire Blinkbolt',combo:['fire','fire','lightning'],altCombos:[['lightning','lightning','fire']],img:'https://i.postimg.cc/mDT4p20n/Fire-Blinkbolt.png',desc:'Become a fireball and barrel forward, raining lightning on nearby foes.'},
+    {id:'homing_fire',name:'Homing Fire Projectile',combo:['magic','fire','fire'],altCombos:[['magic','magic','fire']],img:'https://i.postimg.cc/mDVsvW4g/Homing-Fire-Projectile.png',desc:'Launch a wraith flame that pursues enemies.'},
+    {id:'breath',name:'Magic Fire Breath',combo:['magic','fire','holy'],img:'https://i.postimg.cc/2y6Dm9jF/Magic-Fire-Breath.png',desc:'Spew a mixed affinity breath that inflicts damage upon enemies, and restores HP and FP of allies with contact.'},
+    {id:'health_buff',name:'Max Health Increase',combo:['holy','holy','fire'],altCombos:[['fire','fire','holy']],img:'https://i.postimg.cc/SK3TjZGf/Max-Health-Increase.png',desc:'Raise a torch for a limited time that raises max HP and reduces status ailment gauge buildup for nearby allies, and lowers max HP of nearby enemies.'},
+    {id:'infinite_fp',name:'Short-Time Infinite FP',combo:['magic','magic','holy'],altCombos:[['holy','holy','magic']],img:'https://i.postimg.cc/3wdf8M2w/Short-Time-Infinite-FP.png',desc:'Cover nearby area with a magical veil, fully conserving FP for self and allies for a short time.'},
+    {id:'tracking_wisp',name:'Tracking Wisp',combo:['magic','magic','magic'],img:'https://i.postimg.cc/ZRNfNr7t/Tracking-Wisp.png',desc:'Enwreathe an enemy in magic that deals damage for some time, encircling and attacking the target.'},
+  ];
+
+  function renderLearn(){
+    const elG=$('#elGrid'); elG.innerHTML='';
+    ELEMENTS.forEach(e=>{
+      const d=document.createElement('div'); d.className='card';
+      d.innerHTML=`<div class="imgbox"><img src="${e.img}" alt="${e.name}"></div><div class="title">${e.name}</div>`;
+      elG.appendChild(d);
+    });
+    const spG=$('#spellGrid'); spG.innerHTML='';
+    SPELLS.forEach(sp=>{
+      const c=document.createElement('div'); c.className='card'; c.tabIndex=0;
+      c.innerHTML=`<div class='imgbox'><img src='${sp.img}' alt='${sp.name}'></div>
+                   <div class='title'>${sp.name}</div>
+                   <div class='desc'>${sp.desc}</div>
+                   <div class='small muted'>Click to reveal the combination</div>`;
+      c.addEventListener('click',()=>{
+        if(c.querySelector('.combo')) return;
+        const variants=[sp.combo, ...(sp.altCombos||[])];
+        variants.forEach((cmb,idx)=>{
+          const row=document.createElement('div'); row.className='combo';
+          cmb.forEach(id=>{ row.appendChild(makeIcon(id)) });
+          if(idx>0){
+            const tag=document.createElement('span'); tag.className='small muted';
+            tag.textContent='or'; tag.style.display='block'; tag.style.marginTop='6px';
+            c.appendChild(tag);
+          }
+          c.appendChild(row);
+        });
+      });
+      spG.appendChild(c);
+    });
+  }
+
+  $$('.tab').forEach(t=>t.addEventListener('click',()=>{
+    $$('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
+    $$('.panel').forEach(p=>p.classList.remove('active'));
+    $(`#panel-${t.dataset.tab}`).classList.add('active');
+  }));
+
+  let mode='c2s', score=0, streak=0, current=null, chosen=[], answered=false, currentShown=null;
+  let answeredCount=0, correctCount=0, totalTime=0, tStart=0;
+  let timerId=null, timeLeft=0; let lastRankIndex=-1;
+
+  const RANKS_LIST=[
+    {t:5,name:'Tarnished'},{t:15,name:'Bloody Finger'},{t:25,name:'Black Knife'},{t:50,name:'Carian Knight'},
+    {t:75,name:'Godskin Apostle'},{t:100,name:"Shardbearer's Heir"},{t:150,name:'Elden Champion'},
+    {t:200,name:'Lord of Frenzied Flame'},{t:1000,name:'Elden Lord'},
+  ];
+
+  $$('input[name="mode"]').forEach(r=>r.addEventListener('change',e=>{mode=e.target.value; resetQuiz();}));
+  $('#btnReset').addEventListener('click', resetQuiz);
+  $('#btnNext').addEventListener('click', newQuestion);
+  $('#timer').addEventListener('change', ()=>{ if($('#timer').value.trim()===''){ $('#timer').value='0'; } });
+
+  function resetQuiz(){
+    clearTimeout(timerId); timerId=null; timeLeft=0;
+    score=0; streak=0; updateScore(); answered=false;
+    answeredCount=0; correctCount=0; totalTime=0; lastRankIndex=-1; updateRankLabel();
+    $('#qbox').textContent='Ready. Press “Start”. '; $('#answers').innerHTML=''; $('#picker').style.display='none';
+    $('#answers').style.minHeight=''; $('#picker').style.minHeight='';
+    $('#msg').textContent=''; updateStats();
+  }
+  function updateScore(){ $('#score').textContent=score; $('#streak').textContent=streak; updateRankLabel(); }
+  function updateStats(){
+    const acc = answeredCount? Math.round((correctCount/answeredCount)*100): null;
+    const avg = answeredCount? (totalTime/answeredCount): null;
+    $('#stats').textContent = `Accuracy: ${acc==null?'—':acc+'%'} • Avg time: ${avg==null?'—':avg.toFixed(1)+'s'}`;
+  }
+  function updateRankLabel(){
+    const r = [...RANKS_LIST].reverse().find(x=>streak>=x.t);
+    $('#rank').textContent = r ? r.name : '—';
+  }
+
+  function lockHeights(){
+    const a=$('#answers'); const p=$('#picker');
+    a.style.minHeight = a.offsetHeight + 'px';
+    p.style.minHeight = p.offsetHeight + 'px';
+  }
+
+  function startTimer(){
+    const v=$('#timer').value.trim();
+    const dur = Math.max(0, parseInt(v||'0',10) || 0);
+    timeLeft=dur;
+    $('#msg').textContent = `Timer: ${timeLeft} sec`;
+    if(!dur){ return; }
+    const tick=()=>{
+      timeLeft--;
+      $('#msg').textContent = `Timer: ${timeLeft} sec`;
+      if(timeLeft<=0){ finish(false); } else { timerId=setTimeout(tick,1000); }
+    };
+    clearTimeout(timerId); timerId=setTimeout(tick,1000);
+  }
+  function stopTimer(){ clearTimeout(timerId); timerId=null; }
+
+  function newQuestion(){
+    const pool = SPELLS.filter(s=>s.combo&&s.combo.length);
+    if(pool.length<2){return;}
+    answered=false; $('#answers').innerHTML='';
+    $('#answers').style.minHeight=''; $('#picker').style.minHeight='';
+    current = pool[Math.floor(Math.random()*pool.length)];
+    if(mode==='c2s'){
+      const variants=[current.combo, ...(current.altCombos||[])];
+      currentShown = variants[Math.floor(Math.random()*variants.length)];
+      const bar=document.createElement('div'); bar.className='combo-bar';
+      currentShown.forEach(id=>bar.appendChild(makeIcon(id)));
+      $('#qbox').classList.remove('ok','bad');
+      $('#qbox').innerHTML=''; $('#qbox').classList.add('qarea'); $('#qbox').appendChild(bar);
+      const wrong=shuffle(pool.filter(x=>x.id!==current.id)).slice(0,3);
+      shuffle([current,...wrong]).forEach((sp,i)=>{
+        const node=answerCard(sp, sp.id===current.id); const b=document.createElement('span'); b.className='badge'; b.textContent=i+1; node.appendChild(b); $('#answers').appendChild(node);
+      });
+      $('#picker').style.display='none';
+    } else {
+      $('#qbox').innerHTML=
+        `<div class='card' style="background:var(--panel2);margin:auto;text-align:center">
+           <div class="ring" id="ring">
+             <span class='fill'></span>
+             <img src='${current.img}' alt='${current.name}'>
+           </div>
+           <div class='title' style='text-align:center'>${current.name}</div>
+         </div>`;
+      $('#qbox').classList.add('qarea');
+      chosen=[null,null,null]; renderChosen();
+      const pal=$('#palette'); pal.innerHTML='';
+      ELEMENTS.forEach((e,idx)=>{
+        const b=document.createElement('button'); b.className='btn'; b.style.position='relative';
+        b.innerHTML=`<span class="badge">${idx+1}</span><img src='${e.img}' alt='${e.name}' style='width:18px;height:18px;vertical-align:-4px;border-radius:4px;border:1px solid rgba(255,255,255,.2)'> ${e.name}`;
+        b.onclick=()=>{ if(answered) return; const i=chosen.findIndex(v=>!v); if(i!==-1){ chosen[i]=e.id; renderChosen(); } };
+        pal.appendChild(b);
+        if(e.id==='magic'){
+          const hint=document.createElement('span'); hint.className='small muted'; hint.textContent='Backspace — remove last'; hint.style.marginLeft='8px'; pal.appendChild(hint);
+        }
+      });
+      $('#picker').style.display='flex'; $('#check').disabled=true;
+      $('#check').onclick=()=>{
+        if(answered) return;
+        const ans=chosen.filter(Boolean);
+        const ok = sameCombo(ans, current.combo) || (current.altCombos||[]).some(c=>sameCombo(ans,c));
+        finish(ok);
+      };
+    }
+    tStart = performance.now();
+    startTimer();
+    requestAnimationFrame(lockHeights);
+  }
+
+  function answerCard(sp,correct){
+    const c=document.createElement('div'); c.className='card ans';
+    c.innerHTML=`<div class='imgbox'><img src='${sp.img}' alt='${sp.name}'></div><div class='title'>${sp.name}</div>`;
+    c.onclick=()=>{ if(answered) return; finish(correct); };
+    return c;
+  }
+
+  function renderChosen(){
+    const box=$('#chosen'); box.innerHTML='';
+    for(let i=0;i<3;i++){
+      const slot=document.createElement('div'); slot.className='slot';
+      if(chosen[i]){ slot.appendChild(makeIcon(chosen[i])); slot.dataset.el=chosen[i]; }
+      else { delete slot.dataset.el; }
+      slot.onclick=()=>{ if(answered) return; if(chosen[i]){ chosen[i]=null; renderChosen(); } };
+      box.appendChild(slot);
+    }
+    const picked = chosen.filter(Boolean);
+    $('#resultPreview').textContent = `Result: ? (${picked.length}/3)`;
+    $('#check').disabled = picked.length===0;
+  }
+
+  function showCorrectCombos(container){
+    const variants=[current.combo, ...(current.altCombos||[])];
+    const section=document.createElement('div'); section.style.marginTop='12px';
+    variants.forEach((cmb, idx)=>{
+      if(idx>0){ const or=document.createElement('div'); or.className='small muted'; or.textContent='or'; or.style.margin='6px 0'; section.appendChild(or); }
+      const row=document.createElement('div'); row.className='combo';
+      cmb.forEach(id=>{ row.appendChild(makeIcon(id)); });
+      section.appendChild(row);
+    });
+    container.appendChild(section);
+  }
+
+  function triggerCenterWave(ok){
+    $('#qbox').classList.remove('ok','bad');
+    $('#qbox').classList.add(ok ? 'ok' : 'bad');
+    const rip=document.createElement('span'); rip.className='qripple';
+    const fill=document.createElement('span'); fill.className='qfill';
+    $('#qbox').appendChild(rip); $('#qbox').appendChild(fill);
+    requestAnimationFrame(()=>{ rip.classList.add('animate'); fill.classList.add('animate'); });
+    setTimeout(()=>{ rip.remove(); fill.remove(); }, 950);
+  }
+
+  function playSfx(ok){ const a = ok ? $('#sfxOk') : $('#sfxBad'); if(!a) return; try{ a.currentTime=0; a.play(); } catch(e){} }
+  function playRank(){ const a=$('#sfxRank'); if(!a) return; try{ a.currentTime=0; a.play(); }catch(e){} }
+
+  function maybeRankUp(){
+    let idx = RANKS_LIST.findIndex((r,i)=> streak>=r.t && i>lastRankIndex);
+    if(idx!==-1){ lastRankIndex=idx; const banner=$('#rankBanner'); banner.textContent=RANKS_LIST[idx].name; banner.classList.add('show'); playRank();
+      setTimeout(()=>banner.classList.remove('show'), 1800);
+    }
+  }
+
+  function finish(ok){
+    if(answered) return; answered=true; stopTimer();
+    const dt=(performance.now()-tStart)/1000; totalTime+=dt; answeredCount++; if(ok) correctCount++;
+    playSfx(ok);
+    if(mode==='c2s'){
+      $$('#answers .ans').forEach(a=>{a.classList.add('wrong'); a.style.pointerEvents='none';});
+      $$('#answers .ans .title').forEach((t,i)=>{ if(t.textContent===current.name){ const node=$$('#answers .ans')[i]; node.classList.remove('wrong'); node.classList.add('correct'); } });
+      triggerCenterWave(ok);
+    } else {
+      $('#qbox').innerHTML =
+        `<div class='card' style="background:var(--panel2);margin:auto;text-align:center">
+           <div class="ring ${ok ? 'ok' : 'bad'}" id="ring">
+             <span class='fill'></span>
+             <img src='${current.img}' alt='${current.name}'>
+           </div>
+           <div class='title' style='text-align:center'>${current.name} — ${ok ? "Correct" : "Wrong"}</div>
+         </div>`;
+      $('#qbox').classList.add('qarea');
+      if(!ok){ const card=$('#qbox').firstElementChild; showCorrectCombos(card); }
+      $('#picker').style.pointerEvents='none';
+      const ring=document.getElementById('ring');
+      if(ring){ ring.classList.remove('animate','ok','bad'); void ring.offsetWidth; ring.classList.add(ok ? 'ok' : 'bad','animate'); }
+    }
+    if(ok){ score++; streak++; } else { streak=0; lastRankIndex=-1; }
+    updateScore(); updateStats(); maybeRankUp();
+    setTimeout(()=>{ if(mode==='s2c'){ $('#picker').style.pointerEvents=''; } newQuestion(); }, 900);
+  }
+
+  document.addEventListener('keydown', e=>{
+    if(e.repeat) return;
+    if(mode==='c2s' && ['1','2','3','4'].includes(e.key)){
+      const idx = parseInt(e.key,10)-1; const cards = $$('#answers .ans');
+      if(cards[idx]){ cards[idx].click(); }
+    }
+    if(mode==='s2c'){
+      if(['1','2','3','4'].includes(e.key)){
+        const mapIds = ELEMENTS.map(e=>e.id);
+        const elId = mapIds[parseInt(e.key,10)-1];
+        const i=chosen.findIndex(v=>!v); if(i!==-1){ chosen[i]=elId; renderChosen(); }
+      }
+      if(e.key==='Backspace'){
+        const idx = (()=>{ const i = chosen.indexOf(null); return i===-1 ? 2 : Math.max(0,i-1); })();
+        if(chosen[idx]){ chosen[idx]=null; renderChosen(); }
+      }
+      if(e.key==='Enter' && !$('#check').disabled){ $('#check').click(); }
+    }
+  });
+
+  const VOL_KEY='nr_vol';
+  function buildRune(){ const r=$('#volRune'); r.innerHTML=''; const n=12; for(let i=0;i<n;i++){ const s=document.createElement('span'); s.className='seg'; s.dataset.idx=i; r.appendChild(s);} layoutRune(); }
+  function layoutRune(){ const r=$('#volRune'); const segs=$$('#volRune .seg'); const rect=r.getBoundingClientRect(); const radius=rect.width/2; const n=segs.length; const dist=radius - Math.max(10, radius*0.28); segs.forEach((s,i)=>{ const ang=(360/n)*i; s.style.transform=`rotate(${ang}deg) translate(0, ${-dist}px)`; s.style.transformOrigin='center'; }); }
+  window.addEventListener('resize', layoutRune);
+  function updateRune(pct){ const segs=$$('#volRune .seg'); const lit=Math.round((pct/100)*segs.length); segs.forEach((s,i)=> s.classList.toggle('on', i<lit)); }
+  function applyVolume(p){ const v=Math.max(0,Math.min(100, Number(p)||0)); $$('audio').forEach(a=>a.volume=v/100); $('#volPct').textContent=v+'%'; updateRune(v); }
+  function initSettings(){ buildRune(); const saved=localStorage.getItem(VOL_KEY); const initVol = saved!=null ? Number(saved) : 70; $('#vol').value=initVol; applyVolume(initVol); $('#vol').addEventListener('input', e=>{ const v=e.target.value; applyVolume(v); localStorage.setItem(VOL_KEY, v); }); $('#btnGear').addEventListener('click', ()=>{ const p=$('#settings'); const open=p.classList.toggle('open'); $('#btnGear').setAttribute('aria-expanded', open?'true':'false'); if(open) requestAnimationFrame(layoutRune); }); }
+
+  (function preload(){ SPELLS.forEach(s=>{ const i=new Image(); i.src=s.img; }); })();
+  renderLearn(); resetQuiz(); initSettings();
+  </script>
+</body>
+</html>
